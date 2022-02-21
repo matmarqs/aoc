@@ -1,0 +1,53 @@
+x = 110100101[0]011     quero setar o bit 3 para '1'
+            | (OR)
+    000000000[1]000
+
+Ou seja, tenho que construir:
+
+    0000000001000
+
+isto é:
+    1 << 4
+
+logo:
+    return x | (1 << n)
+
+
+0000110101  x (adjacent)
+0000010011  visited_small
+
+0000100100  in adjacent, not in visited_small
+
+0000110101  x (adjacent)
+    &
+1111101100  ~visited_small
+
+0000100100 in adjacent, not in visited_small
+
+
+in adjacent, not in visited_small = adjacent & ~visited_small
+
+pos = 3
+0000110[1]001   x
+0000000110[1]   x >> pos
+
+0000000000[1]   1
+
+0000000000[1]   (x >> pos) & 1
+
+
+pos = 3
+0000110[0]001   x
+0000000110[0]   x >> pos
+
+0000000000[1]   1
+
+0000000000[0]   (x >> pos) & 1
+
+
+set_zero, bit 5
+
+0001101[1]01100   x
+1111111[0]11111   ~(1 << n)
+
+logo: return x & ~(1 << n)
