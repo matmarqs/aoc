@@ -15,8 +15,8 @@ void print_grid(int mat[MAT_X][MAT_Y], int max_x, int max_y) {
     int i, j;
     for (i = 0; i < max_y; i++) {
         for (j = 0; j < max_x - 1; j++)
-            printf("%c", (mat[i][j] == 1) ? '#' : '.');
-        printf("%c\n", (mat[i][max_x - 1] == 1) ? '#' : '.');
+            printf(mat[i][j] ? "#" : ".");
+        printf("\n");
     }
 }
 
@@ -99,19 +99,21 @@ int main(int argc, char *argv[]) {
     }
     bound_x++;
     bound_y++;
+    int maxbound_x = bound_x, maxbound_y = bound_y;
 
-    int count, bound;
+    int count = 0, bound, old_bound = 0;
     printf("char = %c, num = %d\n", instr[0].axis, instr[0].num);
     printf("bound_x = %d, bound_y = %d\n", bound_x, bound_y);
     bound = (instr[0].axis == 'x') ? bound_y : bound_x;
-    count = reflect(matrix, instr[0].axis, instr[0].num, &bound, bound_x, bound_y);
-    //count = reflect(matrix, instr[1].axis, instr[1].num, &bound, bound_x, bound_y);
+    for (int j = 0; j < i; j++) {
+        old_bound = bound; count = reflect(matrix, instr[j].axis, instr[j].num, &bound, bound_x, bound_y);
+    }
     printf("count = %d\n", count);
-
-    //for (int j = 0; j < i; j++)
-    //    printf("fold along %c=%d\n", instr[j].axis, instr[j].num);
-    //print_grid(matrix, bound_x, bound_y);
-    print_grid(matrix, bound_x, bound_y);
+    if (instr[i-1].axis == 'x')
+        bound_x = instr[i-1].num, bound_y = old_bound;
+    else
+        bound_y = instr[i-1].num, bound_x = old_bound;
+    print_grid(matrix, 100, bound_y);
 
     free(line);
     fclose(stream);
