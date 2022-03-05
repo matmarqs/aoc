@@ -18,35 +18,46 @@ int bin2dec(char *bin, int binlen) {
 void strcpy_pos(const char *src, char *dest, int org, int num) {
     for (int i = 0; i < num; i++)
         dest[i] = src[org + i];
-    dest[org + num] = '\0';
+    dest[num] = '\0';
 }
 
-int sum_version(char *bin) {
+int sum_version(char *bin, int *total_len) {
     int version = 4 * (bin[0] - '0') + 2 * (bin[1] - '0') + (bin[2] - '0');
     int type = 4 * (bin[3] - '0') + 2 * (bin[4] - '0') + (bin[5] - '0');
     if (type == 4) {
         int prefix, num_groups = 1;
         for (prefix = 6; bin[prefix] - '0'; prefix += 5, num_groups++); /* do nothing */
-        int litlen = 4 * num_groups;
-        char lit[litlen + 1];   /* +1 because of '\0' */
-        for (int j = 0; j < num_groups; j++) {
-            for (int until4 = 0; until4 < 4; until4++)
-                lit[j + until4] = bin[7 + 5 * j + until4];
-        }
-        lit[litlen] = '\0'; /* end of string */
-        int lit_val = bin2dec(lit, litlen);
+        //int litlen = 4 * num_groups;
+        //char lit[litlen + 1];   /* +1 because of '\0' */
+        //for (int j = 0; j < num_groups; j++) {
+        //    for (int until4 = 0; until4 < 4; until4++)
+        //        lit[j + until4] = bin[7 + 5 * j + until4];
+        //}
+        //lit[litlen] = '\0'; /* end of string */
+        //int lit_val = bin2dec(lit, litlen);
+        *total_len += 6 + 5 * num_groups;
     }
     else {
         int id = bin[6] - '0';
         if (id) {
+            char length_str[12];    /* +1 because of '\0' */
+            strcpy_pos(bin, length_str, 7, 11);
+            int num = bin2dec(length_str, 11), pos = 18;
+            for (int i = 0; i < num; i++)
+                version += sum_version(bin + pos, &pos);
+            *total_len += pos;
         }
-        else {
-            char length_str[16];
+        else {  /* next 15 bits are the total length in bits of the sub-packets */
+            char length_str[16];    /* +1 because of '\0' */
             strcpy_pos(bin, length_str, 7, 15);
             int len = bin2dec(length_str, 15);
+            int count_len = 0;
+            while (count_len < len)
+                version += sum_version(bin + 22 + count_len, &count_len);
+            *total_len += 22 + count_len;
         }
     }
-    return 0;
+    return version;
 }
 
 void hex2bin(char hex, char *line_bin, int pos) {
@@ -106,8 +117,10 @@ int main(int argc, char *argv[]) {
     char *line_bin = str_hex2bin(line, linelen, &binlen);
 
     /* solving the problem */
+    int total_len = 0;
+    int sum = sum_version(line_bin, &total_len);
 
-    //printf("%s\n", line_bin);
+    printf("sum of versions = %d\n", sum);
 
     free(line_bin);
     free(line);
