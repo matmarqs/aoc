@@ -7,21 +7,20 @@ double t_root(int vy, int yi) {
     return (u + sqrt(u*u - 8.0*yi)) / 2.0;
 }
 
-///* x(t) = s(t, vx), y(t) = s(t, vy) */
-//int s(int t, int vu) {
-//    return vu * t - (t * (t-1)) / 2;
-//}
-
-/* x(t) = s(t, vx), y(t) = s(t, vy) */
-int max_height(int v) {
-    return (v * (v+1)) / 2;
+/* if t >= vx, x = x_max */
+int fx(int t, int v) {
+    if (t < v)
+        return v * t - (t * (t-1)) / 2;
+    else
+        return (v * (v + 1)) / 2;
 }
 
-/* returns n if there exists natural n such that x <= n <= y */
-/* returns -1 otherwise */
-int int_btw(double x, double y) {
-    int f = floor(y);
-    return (ceil(x) <= f) ? f : -1;
+/* returns 1 if there exists natural n such that x <= n <= y */
+/* returns 0 otherwise */
+int int_btw(double x, double y, int *tmin, int *tmax) {
+    *tmax = floor(y);
+    *tmin = ceil(x);
+    return tmin <= tmax;
 }
 
 int main(int argc, char *argv[]) {
@@ -47,14 +46,24 @@ int main(int argc, char *argv[]) {
     sscanf(line, "target area: x= %d .. %d , y= %d .. %d \n", &x1, &x2, &y1, &y2);
     printf("x1 = %d, x2 = %d, y1 = %d, y2 = %d\n", x1, x2, y1, y2);
 
-    int limit_vy = 2*abs(y1), max_vy = 0;
-    for (int vy = - limit_vy; vy < limit_vy; vy++) {
-        if (int_btw(t_root(vy, y2), t_root(vy, y1)) != -1)
-            max_vy = vy;
-    }
+    /* na verdade, o x e o y sao exatamente simetricos, tirando o fato de quando vx = 0 acaba o movimento em x */
+    int limit_vy = abs(y1) + 1, limit_vx = abs(x2) + 1;
+    int tmin, tmax, count = 0;
+    for (int vy = -limit_vy; vy < limit_vy; vy++)
+        if (int_btw(t_root(vy, y2), t_root(vy, y1), &tmin, &tmax))
+            for (int vx = 0; vx < limit_vx; vx++) {
+                for (int t = tmin; t <= tmax; t++) {
+                    int x = fx(t, vx);
+                    if (x1 <= x && x <= x2) {
+                        //printf("%d, %d\n", vx, vy);
+                        count++;
+                        break;
+                    }
+                }
+            }
 
-    printf("\nmax_vy = %d\n", max_vy);
-    printf("max_height = %d\n", max_height(max_vy));
+
+    printf("count = %d\n", count);
 
     free(line);
     fclose(stream);
