@@ -1,3 +1,3 @@
-# [Advent of Code 2021](https://adventofcode.com)
+# [Advent of Code](https://adventofcode.com)
 
-Trying to improve my programming skills.
+Programming 4fun.
