@@ -7,7 +7,7 @@ using namespace std;
 
 int repeated_char(string str) {
     char hash[128] = { 0 };     // initialize every count as zero
-    string::size_type i; int k, found = 0;
+    string::size_type i; char k, found = 0;
     for (i = 0; i < str.size(); i++) {
         k = str[i];
         hash[k]++;
