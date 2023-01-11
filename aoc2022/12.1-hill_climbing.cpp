@@ -3,22 +3,22 @@
 #include <sstream>
 #include <vector>
 #include <cstdio>
+#include <deque>
 
 class vertex {
 public:
     char lv;
-    int dist;   // distance from the initial node
-    int unvisited;
+    //int dist;   // distance from the initial node
+    int visited;
     vertex *nbr[4];
+    vertex *parent;
     vertex (char lvl) {
         lv = lvl;
-        dist = -1;
-        unvisited = 1;
+        //dist = -1;
+        visited = 0;
+        parent = NULL;
     }
 };
-
-/* -1 is infinity */
-int my_min(int a, int b) { return a == -1 ? b : (b == -1 ? a : (a > b ? b : a)); }
 
 void setup_nodes(std::vector <std::vector <vertex *>> &map) {
     int m = (int) map.size(), n = (int) map[0].size();
@@ -41,27 +41,37 @@ void setup_nodes(std::vector <std::vector <vertex *>> &map) {
             }
 }
 
-
-vertex *get_unvisited(std::vector <std::vector <vertex *>> &map) {
-    for (int i = 0; i < (int) map.size(); i++)
-        for (int j = 0; j < (int) map[i].size(); j++)
-            if (map[i][j]->unvisited && map[i][j]->dist != -1)
-                return map[i][j];
-    return NULL;
-}
-
-
-void dijkstra(vertex *u, std::vector <std::vector <vertex *>> &map) {
-    u->unvisited = u->dist = 0;
-    while (u) {     // while not NULL
-        for (vertex *v : u->nbr)
-            if (v)  // not NULL
-                v->dist = my_min(u->dist + 1, v->dist);
-        u->unvisited = 0;
-        u = get_unvisited(map);
+int shortest_path
+(std::vector <std::vector <vertex *>> &map, int i_e, int j_e, int i_s, int j_s) {
+    std::deque <vertex *> queue;
+    vertex *v = map[i_e][j_e]; v->visited = 1;
+    queue.push_back(v);
+    while (!queue.empty()) {
+        v = queue.front(); queue.pop_front();
+        if (v == map[i_s][j_s])
+            return 0;
+        for (int n = 0; n < 4; n++) {
+            vertex *w = v->nbr[n];
+            if (w != NULL && !w->visited) {
+                w->visited = 1;
+                w->parent = v;
+                queue.push_back(w);
+            }
+        }
     }
+    return 1;
 }
 
+int shortest_len
+(std::vector <std::vector <vertex *>> &map, int i_e, int j_e, int i_s, int j_s) {
+    int len = 0;
+    vertex *v = map[i_s][j_s];
+    while (v != map[i_e][j_e]) {
+        v = v->parent;
+        len += 1;
+    }
+    return len;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -92,8 +102,9 @@ int main(int argc, char *argv[]) {
     }
 
     setup_nodes(map);
-    dijkstra(map[i_s][j_s], map);
-    std::cout << map[i_e][j_e]->dist << std::endl;
+    shortest_path(map, i_e, j_e, i_s, j_s);
+    int short_len = shortest_len(map, i_e, j_e, i_s, j_s);
+    std::cout << short_len << std::endl;
 
     // free space
     for (int i = 0; i < (int) map.size(); i++)
