@@ -65,6 +65,13 @@ void setup_nodes(std::vector <std::vector <vertex *>> &map) {
             }
 }
 
+void refresh_nodes(std::vector <std::vector <vertex *>> &map) {
+    int m = (int) map.size(), n = (int) map[0].size();
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < n; j++)
+            map[i][j]->visited = 0, map[i][j]->parent = NULL;
+}
+
 int shortest_path
 (std::vector <std::vector <vertex *>> &map, int i_e, int j_e, int i_s, int j_s) {
     std::deque <vertex *> queue;
@@ -110,15 +117,19 @@ int main(int argc, char *argv[]) {
 
     /* read until end of file */
     std::string line;
-    int i = 0, i_s = 0, j_s = 0, i_e = 0, j_e = 0;
+    int i = 0, i_e = 0, j_e = 0;
+    std::vector <int> is, js;   // lists of starting positions
     while (std::getline(InputFile, line)) {
         map.push_back(std::vector <vertex *> ());
         for (int j = 0; j < (int) line.length(); j++) {
             char c = line[j];
-            if (line[j] == 'S')
-                i_s = i, j_s = j, c = 'a';
-            else if (line[j] == 'E')
+            if (c == 'S' || c == 'a') {
+                is.push_back(i); js.push_back(j);
+                c = 'a';
+            }
+            else if (c == 'E') {
                 i_e = i, j_e = j, c = 'z';
+            }
             vertex *v = new vertex(c);
             map[i].push_back(v);
         }
@@ -126,9 +137,16 @@ int main(int argc, char *argv[]) {
     }
 
     setup_nodes(map);
-    shortest_path(map, i_e, j_e, i_s, j_s);
-    int short_len = shortest_len(map, i_e, j_e, i_s, j_s);
-    std::cout << short_len << std::endl;
+    int shortest = 1000000000;
+    for (int l = 0; l < (int) is.size(); l++) {
+        if (shortest_path(map, i_e, j_e, is[l], js[l]) == 0) {
+            int n = shortest_len(map, i_e, j_e, is[l], js[l]);
+            //std::cout << n << std::endl;
+            refresh_nodes(map);
+            shortest = (n < shortest) ? n : shortest;
+        }
+    }
+    std::cout << shortest << std::endl;
 
     // free space
     for (int i = 0; i < (int) map.size(); i++)
